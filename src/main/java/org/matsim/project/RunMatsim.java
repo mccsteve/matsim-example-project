@@ -18,13 +18,13 @@
  * *********************************************************************** */
 package org.matsim.project;
 
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.contrib.otfvis.OTFVisLiveModule;
+import java.io.IOException;
+import java.util.Random;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
-import org.matsim.core.scenario.ScenarioUtils;
+import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
 
 /**
  * @author nagel
@@ -36,31 +36,40 @@ public class RunMatsim{
 
 		Config config;
 		if ( args==null || args.length==0 || args[0]==null ){
-			config = ConfigUtils.loadConfig( "scenarios/equil/config.xml" );
+			config = ConfigUtils.loadConfig( "..\\..\\scaper-sim-scenario\\matsim-config.xml" );
 		} else {
 			config = ConfigUtils.loadConfig( args );
 		}
 		config.controler().setOverwriteFileSetting( OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists );
-
-		// possibly modify config here
 		
-		// ---
-		
+		/*
 		Scenario scenario = ScenarioUtils.loadScenario(config) ;
-		
-		// possibly modify scenario here
-		
-		// ---
-		
 		Controler controler = new Controler( scenario ) ;
-		
-		// possibly modify controler here
-
-		controler.addOverridingModule( new OTFVisLiveModule() ) ;
-		
-		// ---
-		
 		controler.run();
+		*/
+
+		//calculate skim matrices
+		ConfigGroup smcg = config.getModule("skimMatrix");
+
+		String zonesShapeFilename = smcg.getValue("zoneShapefile");
+		String zonesIdAttributeName = smcg.getValue("zonesIdAttribute");
+		String outputDirectory = smcg.getValue("outputDirectory");
+		String networkFilename = config.network().getInputFile();
+		String eventsFilename = null; //test without events first, then load events after running controler
+		double[] times = new double[] { 7*3600 }; //7 am (seconds after midnight)
+		int numThreads = 8;
+		int numCoordsPerZone = 1;
+
+		CalculateSkimMatrices skims = new CalculateSkimMatrices(outputDirectory, numThreads);
+		
+		try {
+			skims.calculateSamplingPointsPerZoneFromNetwork(networkFilename, numCoordsPerZone, zonesShapeFilename, zonesIdAttributeName, new Random());
+			skims.calculateNetworkMatrices(networkFilename, eventsFilename, times, config, null, link -> true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		
 	}
 	
 }
