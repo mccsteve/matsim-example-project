@@ -77,7 +77,7 @@ public class PTSkimMatrices {
         Counter counter = new Counter("PT-FrequencyMatrix-" + Time.writeTime(minDepartureTime) + "-" + Time.writeTime(maxDepartureTime) + " zone ", " / " + coordsPerZone.size());
         Thread[] threads = new Thread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null, null);
+            SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null, null, null);
             RowWorker<T> worker = new RowWorker<>(originZones, zoneIds, coordsPerZone, pti, raptor, parameters, minDepartureTime, maxDepartureTime, stepSize_seconds, counter, trainDetector);
             threads[i] = new Thread(worker, "PT-FrequencyMatrix-" + Time.writeTime(minDepartureTime) + "-" + Time.writeTime(maxDepartureTime) + "-" + i);
             threads[i].start();

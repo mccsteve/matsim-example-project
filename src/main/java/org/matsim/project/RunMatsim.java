@@ -20,10 +20,14 @@ package org.matsim.project;
 
 import java.io.IOException;
 import java.util.Random;
+
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.scenario.ScenarioUtils;
+
 import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
 
 /**
@@ -49,20 +53,17 @@ public class RunMatsim{
 		*/
 
 		//calculate skim matrices
-		ConfigGroup smcg = config.getModule("skimMatrix");
-
-		String zonesShapeFilename = smcg.getValue("zoneShapefile");
-		String zonesIdAttributeName = smcg.getValue("zonesIdAttribute");
-		String outputDirectory = smcg.getValue("outputDirectory");
-		String networkFilename = config.network().getInputFile();
-		String eventsFilename = null; //test without events first, then load events after running controler
-		double[] times = new double[] { 7*3600 }; //7 am (seconds after midnight)
-		int numThreads = 8;
-		int numCoordsPerZone = 1;
-
-		CalculateSkimMatrices skims = new CalculateSkimMatrices(outputDirectory, numThreads);
-		
 		try {
+			String zonesShapeFilename = config.findParam("skimMatrix", "zoneShapefile");
+			String zonesIdAttributeName = config.findParam("skimMatrix", "zonesIdAttribute");
+			String outputDirectory = config.findParam("skimMatrix", "outputDirectory");
+			String networkFilename = config.network().getInputFile();
+			String eventsFilename = null; //test without events first, then load events after running controler
+			double[] times = new double[] { 7*3600 }; //7 am (seconds after midnight)
+			int numThreads = 8;
+			int numCoordsPerZone = 1;
+
+			CalculateSkimMatrices skims = new CalculateSkimMatrices(outputDirectory, numThreads);		
 			skims.calculateSamplingPointsPerZoneFromNetwork(networkFilename, numCoordsPerZone, zonesShapeFilename, zonesIdAttributeName, new Random());
 			skims.calculateNetworkMatrices(networkFilename, eventsFilename, times, config, null, link -> true);
 		} catch (IOException e) {
